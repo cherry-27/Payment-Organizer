@@ -1,23 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'schermata_registrazione.dart';
-import 'schermata_login.dart';
-import 'schermata_area_solo.dart';
+import 'package:payment_organiser/SchermataAggiungiSpesa.dart';
+import 'package:provider/provider.dart';
+import 'package:payment_organiser/SpesaViewModel.dart';
+import 'SchermataRegistrazione.dart';
+import 'SchermataLogin.dart';
+import 'SchermataAreaSolo.dart';
+import 'SchermataIniziale.dart';
+import 'SchermataListaGruppi.dart';
+import 'SchermataSpeseGruppo.dart'; // o qualunque nome usi per la schermata gruppo
 
-void main() {
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return ChangeNotifierProvider(
+        create: (_) => SpeseViewModel()..caricaSpese(),
+    child: MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Payment Organiser',
       theme: ThemeData(
-        textTheme: GoogleFonts.lilitaOneTextTheme(Theme
-            .of(context)
-            .textTheme),
+        textTheme: GoogleFonts.lilitaOneTextTheme(
+          Theme.of(context).textTheme,
+        ),
         scaffoldBackgroundColor: Color(0xFFE8F5E9),
         appBarTheme: AppBarTheme(
           backgroundColor: Color(0xFF388E3C),
@@ -44,10 +56,17 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: '/login',
       routes: {
+        '/': (context) => SchermataIniziale(),
         '/login': (context) => SchermataLogin(),
         '/register': (context) => SchermataRegistrazione(),
         '/solo': (context) => SchermataSolo(),
+        '/aggiungiSpesa': (context) => SchermataAggiungiSpesa(),
+        '/gruppo': (context) => SchermataListaGruppi(),
+        '/speseGruppo': (context) => SchermataSpeseGruppo(
+        gruppoId: '', // verrà sovrascritto da ModalRoute
+        titolo: ''),
       },
+    ),
     );
   }
 }

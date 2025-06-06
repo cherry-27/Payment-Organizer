@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class SchermataLogin extends StatelessWidget {
@@ -31,7 +32,17 @@ class SchermataLogin extends StatelessWidget {
             ),
             SizedBox(height: 32),
             ElevatedButton(
-              onPressed: () => Navigator.pushNamed(context, '/solo'),
+                onPressed: () async {
+                  try {
+                    await FirebaseAuth.instance.signInWithEmailAndPassword(
+                      email: email.text.trim(),
+                      password: password.text.trim(),
+                    );
+                    Navigator.pushReplacementNamed(context, '/');
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Login fallito: ${e.toString()}')));
+                  }
+                },
               child: Text('Login'),
               style: ElevatedButton.styleFrom(minimumSize: Size.fromHeight(50)),
             ),
