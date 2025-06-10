@@ -2,7 +2,8 @@
     package="com.example.payment_organiser">
     <application
         android:label="payment_organiser"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/icona_app"
+        android:roundIcon="@mipmap/icona_app">
         <activity
             android:name=".MainActivity"
             android:exported="true"

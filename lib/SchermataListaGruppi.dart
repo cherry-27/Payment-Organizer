@@ -5,11 +5,30 @@ import 'CreaGuppoDialog.dart';
 import 'SchermataSpeseGruppo.dart';
 import 'gruppo.dart';
 
-class SchermataListaGruppi extends StatelessWidget {
+class SchermataListaGruppi extends StatefulWidget {
+  @override
+  _SchermataListaGruppiState createState() => _SchermataListaGruppiState();
+}
+
+class _SchermataListaGruppiState extends State<SchermataListaGruppi> {
+  String? uid;
+  late TextEditingController codiceController;
+
+  @override
+  void initState() {
+    super.initState();
+    uid = FirebaseAuth.instance.currentUser?.uid;
+    codiceController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    codiceController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-
     if (uid == null) {
       return Scaffold(body: Center(child: Text("Utente non autenticato")));
     }
@@ -74,76 +93,70 @@ class SchermataListaGruppi extends StatelessWidget {
           FloatingActionButton.extended(
             onPressed: () => showDialog(
               context: context,
-              builder: (_) => CreaGruppoDialog(uid: uid),
+              builder: (_) => CreaGruppoDialog(uid: uid!),
             ),
             icon: Icon(Icons.group_add),
             label: Text('Crea Gruppo'),
           ),
           SizedBox(height: 10),
           FloatingActionButton.extended(
-            onPressed: () {
-              final codiceController = TextEditingController();
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: Text('Unisciti a un gruppo'),
-                  content: TextField(
-                    controller: codiceController,
-                    decoration: InputDecoration(labelText: 'Inserisci codice gruppo'),
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text('Annulla'),
-                    ),
-                    ElevatedButton(
-                      onPressed: () async {
-                        final codiceInserito = codiceController.text.trim();
-
-                        if (codiceInserito.isEmpty) return;
-
-                        final query = await FirebaseFirestore.instance
-                            .collection('Gruppi')
-                            .where('idUnico', isEqualTo: codiceInserito)
-                            .limit(1)
-                            .get();
-
-                        if (query.docs.isEmpty) {
-                          Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Codice gruppo non valido')),
-                          );
-                          return;
-                        }
-
-                        final gruppoDoc = query.docs.first;
-                        final membri = List<String>.from(gruppoDoc['utentiID']);
-
-                        if (!membri.contains(uid)) {
-                          membri.add(uid);
-
-                          await FirebaseFirestore.instance
-                              .collection('Gruppi')
-                              .doc(gruppoDoc.id)
-                              .update({'utentiID': membri});
-                        }
-
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Unito al gruppo con successo')),
-                        );
-                      },
-                      child: Text('Unisciti'),
-                    ),
-                  ],
-                ),
-              );
-            },
+            onPressed: _mostraDialogUnisciGruppo,
             icon: Icon(Icons.login),
             label: Text('Unisciti'),
           ),
         ],
       ),
     );
+  }
+
+  void _mostraDialogUnisciGruppo() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Unisciti a un gruppo'),
+        content: TextField(
+          controller: codiceController,
+          decoration: InputDecoration(labelText: 'Inserisci codice gruppo'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Annulla'),
+          ),
+          ElevatedButton(
+            onPressed: _unisciGruppo,
+            child: Text('Unisciti'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _unisciGruppo() async {
+    final codiceInserito = codiceController.text.trim();
+    if (codiceInserito.isEmpty) return;
+
+    final query = await FirebaseFirestore.instance
+        .collection('Gruppi')
+        .where('idUnico', isEqualTo: codiceInserito)
+        .limit(1)
+        .get();
+
+    if (query.docs.isEmpty) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Codice gruppo non valido')));
+      return;
+    }
+
+    final gruppoDoc = query.docs.first;
+    final membri = List<String>.from(gruppoDoc['utentiID']);
+
+    if (!membri.contains(uid)) {
+      membri.add(uid!);
+      await FirebaseFirestore.instance.collection('Gruppi').doc(gruppoDoc.id).update({'utentiID': membri});
+    }
+
+    Navigator.pop(context);
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Unito al gruppo con successo')));
   }
 }

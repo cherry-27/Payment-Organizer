@@ -56,14 +56,14 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: '/login',
       routes: {
-        '/': (context) => SchermataIniziale(),
+        '/home': (context) => SchermataIniziale(),
         '/login': (context) => SchermataLogin(),
         '/register': (context) => SchermataRegistrazione(),
         '/solo': (context) => SchermataSolo(),
         '/aggiungiSpesa': (context) => SchermataAggiungiSpesa(),
         '/gruppo': (context) => SchermataListaGruppi(),
         '/speseGruppo': (context) => SchermataSpeseGruppo(
-        gruppoId: '', // verrà sovrascritto da ModalRoute
+        gruppoId: '',
         titolo: ''),
       },
     ),

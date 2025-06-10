@@ -104,7 +104,18 @@ class SchermataSpeseGruppoState extends State<SchermataSpeseGruppo> {
 
   void mostraDialogMembri() async {
     final gruppoDoc = await FirebaseFirestore.instance.collection('Gruppi').doc(widget.gruppoId).get();
-    final membri = List<String>.from(gruppoDoc['utentiID']);
+    final membriID = List<String>.from(gruppoDoc['utentiID']);
+
+    List<String> membriNomi = [];
+
+    for (String id in membriID) {
+      final userDoc = await FirebaseFirestore.instance.collection('Utenti').doc(id).get();
+      if (userDoc.exists) {
+        membriNomi.add(userDoc['nickname']);
+      } else {
+        membriNomi.add("Utente sconosciuto");
+      }
+    }
 
     showDialog(
       context: context,
@@ -112,12 +123,15 @@ class SchermataSpeseGruppoState extends State<SchermataSpeseGruppo> {
         title: Text('Membri del gruppo'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
-          children: membri.map((m) => Text(m)).toList(),
+          children: membriNomi.map((nickname) => Text(nickname)).toList(),
         ),
-        actions: [TextButton(onPressed: () => Navigator.pop(context), child: Text('Chiudi'))],
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: Text('Chiudi')),
+        ],
       ),
     );
   }
+
 
   @override
   Widget build(BuildContext context) {
